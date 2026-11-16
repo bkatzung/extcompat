@@ -1,6 +1,6 @@
 # File Module (`@extcompat/file`) Documentation
 
-The [`@extcompat/file`](src/file.esm.js:1) module provides cross-runtime file system operations with full support for symbolic links across Deno, Node.js, and Bun.
+The [`@extcompat/file`](src/file.esm.js:1) module provides cross-runtime file system operations with full support for symbolic links and file permission management (`chmod`, `chmodSync`) across Deno, Node.js, and Bun.
 
 ---
 
@@ -17,7 +17,7 @@ export * from '@compat/file';
 ### Dynamic Runtime Engine Routing
 
 Calls are routed dynamically based on environment detection from [`@compat/runtime`](deno.json:6):
-- **Deno** (`isDeno`): Utilizes the native global `Deno` APIs (`Deno.symlink`, `Deno.symlinkSync`, `Deno.readLink`, `Deno.readLinkSync`, `Deno.lstat`, `Deno.lstatSync`).
+- **Deno** (`isDeno`): Utilizes native global `Deno` APIs (`Deno.symlink`, `Deno.symlinkSync`, `Deno.readLink`, `Deno.readLinkSync`, `Deno.lstat`, `Deno.lstatSync`, `Deno.chmod`, `Deno.chmodSync`).
 - **Node.js & Bun** (`isNode`, `isBun`): Utilizes `node:fs/promises` and `node:fs` imported dynamically.
 
 ```mermaid
@@ -26,11 +26,108 @@ flowchart TD
     Entry --> Detect{Runtime Check}
     Detect -->|isDeno| DenoEngine[Deno Native APIs]
     Detect -->|isNode or isBun| NodeEngine[node:fs / node:fs/promises]
-    DenoEngine --> DenoOps[Deno.symlink / Deno.readLink / Deno.lstat]
-    NodeEngine --> NodeOps[fs.symlink / fs.readlink / fs.lstat]
-    DenoOps --> NormalizedStats[StatsResult Normalizer]
+    DenoEngine --> DenoOps[Deno.symlink / Deno.readLink / Deno.lstat / Deno.chmod]
+    NodeEngine --> NodeOps[fs.symlink / fs.readlink / fs.lstat / fs.chmod]
+    DenoOps --> NormalizedStats[StatsResult Normalizer / void]
     NodeOps --> NormalizedStats
     NormalizedStats --> Result[Normalized Output]
+```
+
+---
+
+## Installation & Import
+
+### CDN Distribution
+
+```json
+{
+  "imports": {
+    "@extcompat/file": "https://cdn.jsdelivr.net/gh/bkatzung/extcompat@<semver>/src/file.esm.js"
+  }
+}
+```
+
+### Local Workspace Import
+
+```javascript
+import {
+  chmod,
+  chmodSync,
+  symlink,
+  symlinkSync,
+  readlink,
+  readlinkSync,
+  lstat,
+  lstatSync,
+  StatsResult,
+  // Re-exported from @compat/file:
+  readFile,
+  writeFile,
+  makeTempDir,
+  remove,
+} from './src/file.esm.js';
+```
+
+---
+
+## Usage Examples
+
+### Asynchronous Operations
+
+```javascript
+import {
+  chmod,
+  symlink,
+  readlink,
+  lstat,
+  writeTextFile,
+  readTextFile,
+} from '@extcompat/file';
+
+// 1. Create a target file
+await writeTextFile('target.txt', 'Hello Symlink!');
+
+// 2. Change permissions (numeric or octal string)
+await chmod('target.txt', 0o755);
+// or: await chmod('target.txt', '755');
+
+// 3. Create a symbolic link
+await symlink('target.txt', 'symlink.txt');
+
+// 4. Inspect with lstat (does not follow symlink)
+const stats = await lstat('symlink.txt');
+console.log(stats.isSymbolicLink()); // true
+console.log(stats.isFile());         // false
+
+// 5. Read the target path
+const target = await readlink('symlink.txt');
+console.log(target); // "target.txt"
+
+// 6. Read file contents through the symlink
+const content = await readTextFile('symlink.txt');
+console.log(content); // "Hello Symlink!"
+```
+
+### Synchronous Operations
+
+```javascript
+import {
+  chmodSync,
+  symlinkSync,
+  readlinkSync,
+  lstatSync,
+  writeTextFileSync,
+  readTextFileSync,
+} from '@extcompat/file';
+
+writeTextFileSync('data.json', '{"status":"ok"}');
+chmodSync('data.json', 0o644);
+symlinkSync('data.json', 'data-link.json');
+
+const stats = lstatSync('data-link.json');
+if (stats.isSymbolicLink()) {
+  console.log('Symlink destination:', readlinkSync('data-link.json'));
+}
 ```
 
 ---
@@ -38,6 +135,22 @@ flowchart TD
 ## Detailed API Specifications
 
 ### Functions
+
+#### `chmod(path, mode)`
+Changes the permissions of a file or directory asynchronously.
+- **Parameters**:
+  - `path` (`string | URL`): Destination path or `file:` URL to the target file or directory.
+  - `mode` (`number | string`): Permissions to set, as a numeric bitmask (e.g. `0o755`, `0o644`) or octal string representation (e.g. `'755'`, `'0755'`, `'0o755'`).
+- **Returns**: `Promise<void>`
+- **Errors**:
+  - Throws `TypeError` if `mode` is not a `number` or `string`.
+  - Throws error if `path` does not exist.
+
+#### `chmodSync(path, mode)`
+Synchronously changes the permissions of a file or directory.
+- **Parameters**: Same as `chmod`.
+- **Returns**: `void`
+- **Errors**: Same as `chmod`.
 
 #### `symlink(target, path, typeOrOptions?)`
 Creates a symbolic link pointing to `target` at destination path `path` asynchronously.

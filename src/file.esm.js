@@ -1,8 +1,9 @@
 /**
- * @fileoverview Extended Cross-Runtime File System Module with Symbolic Link Support.
- * Extends `@compat/file` by implementing cross-runtime symbolic link operations
- * (`symlink`, `symlinkSync`, `readlink`, `readlinkSync`, `lstat`, `lstatSync`)
- * across Bun, Deno, Node.js, and derivative JavaScript runtimes.
+ * @fileoverview Extends `@tundralibs/compat/file` Cross-Runtime File System Module For Bun/Deno/Node And Derivatives
+ * - symlink, symlinkSync
+ * - readlink, readlinkSync
+ * - lstat, lstatSync
+ * - chmod, chmodSync
  *
  * @module @extcompat/file
  */
@@ -29,7 +30,7 @@ export class StatsResult {
 	 * Creates a normalized StatsResult instance from a runtime-native stat object.
 	 * @param {object} raw - Native Deno.FileInfo or Node.js fs.Stats object.
 	 */
-	constructor(raw) {
+	constructor (raw) {
 		const isFn = (fn) => typeof fn === 'function';
 
 		this.#isFile = isFn(raw.isFile) ? raw.isFile() : Boolean(raw.isFile);
@@ -129,7 +130,7 @@ if (!isDeno) {
 	nodeFsPromises = nodeFs.promises ?? (await import('node:fs/promises'));
 }
 
-async function getFsPromises() {
+async function getFsPromises () {
 	if (!nodeFsPromises) {
 		const mod = await import('node:fs/promises');
 		nodeFsPromises = mod.default ?? mod;
@@ -137,21 +138,34 @@ async function getFsPromises() {
 	return nodeFsPromises;
 }
 
-function getFsSync() {
+function getFsSync () {
 	if (!nodeFs) {
 		throw new Error('Synchronous Node fs operations require node:fs module');
 	}
 	return nodeFs;
 }
 
-function normalizePath(p) {
+function normalizePath (p) {
 	if (p instanceof URL || (typeof p === 'object' && p !== null && p.protocol === 'file:')) {
 		return fromFileUrl(p);
 	}
 	return p;
 }
 
-function normalizeType(typeOrOptions) {
+function normalizeMode (mode) {
+	if (typeof mode === 'number') {
+		return mode;
+	}
+	if (typeof mode === 'string') {
+		if (mode.startsWith('0o') || mode.startsWith('0O')) {
+			return parseInt(mode.slice(2), 8);
+		}
+		return parseInt(mode, 8);
+	}
+	throw new TypeError(`Expected mode to be a number or string, got ${typeof mode}`);
+}
+
+function normalizeType (typeOrOptions) {
 	if (typeOrOptions == null) {
 		return undefined;
 	}
@@ -175,7 +189,7 @@ function normalizeType(typeOrOptions) {
  * @param {string | { type?: 'file' | 'dir' | 'junction' }} [typeOrOptions] - Optional type hint.
  * @returns {Promise<void>} Resolves when the symlink is created.
  */
-export async function symlink(target, path, typeOrOptions) {
+export async function symlink (target, path, typeOrOptions) {
 	normalizeType(typeOrOptions);
 	const normalizedTarget = normalizePath(target);
 	const normalizedPath = normalizePath(path);
@@ -194,7 +208,7 @@ export async function symlink(target, path, typeOrOptions) {
  * @param {string | { type?: 'file' | 'dir' | 'junction' }} [typeOrOptions] - Optional type hint.
  * @returns {void}
  */
-export function symlinkSync(target, path, typeOrOptions) {
+export function symlinkSync (target, path, typeOrOptions) {
 	normalizeType(typeOrOptions);
 	const normalizedTarget = normalizePath(target);
 	const normalizedPath = normalizePath(path);
@@ -211,7 +225,7 @@ export function symlinkSync(target, path, typeOrOptions) {
  * @param {string | URL} path - Path to the symbolic link.
  * @returns {Promise<string>} Target path pointed to by the symlink.
  */
-export async function readlink(path) {
+export async function readlink (path) {
 	const normalizedPath = normalizePath(path);
 	if (isDeno) {
 		return await Deno.readLink(normalizedPath);
@@ -226,7 +240,7 @@ export async function readlink(path) {
  * @param {string | URL} path - Path to the symbolic link.
  * @returns {string} Target path pointed to by the symlink.
  */
-export function readlinkSync(path) {
+export function readlinkSync (path) {
 	const normalizedPath = normalizePath(path);
 	if (isDeno) {
 		return Deno.readLinkSync(normalizedPath);
@@ -241,7 +255,7 @@ export function readlinkSync(path) {
  * @param {string | URL} path - Path to inspect.
  * @returns {Promise<StatsResult>} Normalized file status object.
  */
-export async function lstat(path) {
+export async function lstat (path) {
 	const normalizedPath = normalizePath(path);
 	if (isDeno) {
 		const raw = await Deno.lstat(normalizedPath);
@@ -258,7 +272,7 @@ export async function lstat(path) {
  * @param {string | URL} path - Path to inspect.
  * @returns {StatsResult} Normalized file status object.
  */
-export function lstatSync(path) {
+export function lstatSync (path) {
 	const normalizedPath = normalizePath(path);
 	if (isDeno) {
 		const raw = Deno.lstatSync(normalizedPath);
@@ -267,4 +281,38 @@ export function lstatSync(path) {
 	const fs = getFsSync();
 	const raw = fs.lstatSync(normalizedPath);
 	return new StatsResult(raw);
+}
+
+/**
+ * Changes the permissions of a file or directory asynchronously.
+ *
+ * @param {string | URL} path - Path or file URL to the target file or directory.
+ * @param {number | string} mode - Permissions to set, as numeric bitmask (e.g. 0o755) or octal string (e.g. '755', '0755', '0o755').
+ * @returns {Promise<void>} Resolves when permission change is complete.
+ */
+export async function chmod (path, mode) {
+	const normalizedPath = normalizePath(path);
+	const normalizedMode = normalizeMode(mode);
+	if (isDeno) {
+		return await Deno.chmod(normalizedPath, normalizedMode);
+	}
+	const fs = await getFsPromises();
+	return await fs.chmod(normalizedPath, normalizedMode);
+}
+
+/**
+ * Changes the permissions of a file or directory synchronously.
+ *
+ * @param {string | URL} path - Path or file URL to the target file or directory.
+ * @param {number | string} mode - Permissions to set, as numeric bitmask (e.g. 0o755) or octal string (e.g. '755', '0755', '0o755').
+ * @returns {void}
+ */
+export function chmodSync (path, mode) {
+	const normalizedPath = normalizePath(path);
+	const normalizedMode = normalizeMode(mode);
+	if (isDeno) {
+		return Deno.chmodSync(normalizedPath, normalizedMode);
+	}
+	const fs = getFsSync();
+	return fs.chmodSync(normalizedPath, normalizedMode);
 }

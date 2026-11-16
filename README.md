@@ -1,166 +1,41 @@
-# @extcompat/file
+# extcompat
 
-Cross-runtime file system compatibility module extending [`@tundralibs/compat/file`](deno.json:5) with symbolic link operations across **Deno**, **Node.js**, and **Bun**.
+Extended cross-runtime compatibility libraries for JavaScript runtimes (**Deno**, **Node.js**, **Bun**, and derivatives), extending the [`@tundralibs/compat`](https://github.com/tundralibs/compat) ecosystem with additional runtime APIs.
 
-Written as zero-build, pure vanilla ECMAScript Modules (ESM) without a compilation step.
-
----
-
-## Features
-
-- **Full Drop-In Superset**: Re-exports all utilities and error types from [`@compat/file`](deno.json:5).
-- **Symlink Operations**:
-  - [`symlink`](#symlinktarget-path-typeoroptions) / [`symlinkSync`](#symlinksynctarget-path-typeoroptions): Create symbolic links pointing to target paths or `file:` URLs.
-  - [`readlink`](#readlinkpath) / [`readlinkSync`](#readlinksyncpath): Read the target destination of symbolic links.
-  - [`lstat`](#lstatpath) / [`lstatSync`](#lstatsyncpath): Retrieve metadata without dereferencing symbolic links.
-- **Normalized StatsResult**: Standardized inspection methods (`isSymbolicLink()`, `isFile()`, `isDirectory()`, `isFIFO()`, `isSocket()`, `isBlockDevice()`, `isCharacterDevice()`) and metadata properties (`size`, `mtime`, `atime`, `birthtime`, `ctime`, `mode`, etc.) across all runtime engines.
-- **Zero Dependencies at Runtime**: Uses native runtime APIs (`Deno.*` in Deno, `node:fs` / `node:fs/promises` in Node/Bun).
+All modules are written as zero-build, pure vanilla ECMAScript Modules (ESM).
 
 ---
 
-## Installation & Import
+## Current Extensions
 
-### CDN Distribution
+### `@extcompat/file` ([`src/file.esm.js`](src/file.esm.js:1))
 
-```json
-{
-  "imports": {
-    "@extcompat/file": "https://cdn.jsdelivr.net/gh/bkatzung/extcompat@<semver>/src/file.esm.js"
-  }
-}
-```
+Extends [`@tundralibs/compat/file`](deno.json:5) with:
+- **Permission management**: [`chmod`](src/file.esm.js:292) and [`chmodSync`](src/file.esm.js:309) supporting numeric modes and octal strings.
+- **Symbolic link operations**: [`symlink`](src/file.esm.js:192), [`symlinkSync`](src/file.esm.js:211), [`readlink`](src/file.esm.js:228), and [`readlinkSync`](src/file.esm.js:243).
+- **Link metadata inspection**: [`lstat`](src/file.esm.js:258), [`lstatSync`](src/file.esm.js:275), and normalized [`StatsResult`](src/file.esm.js:19).
 
-### Local Workspace Import
-
-```javascript
-import {
-  symlink,
-  symlinkSync,
-  readlink,
-  readlinkSync,
-  lstat,
-  lstatSync,
-  StatsResult,
-  // Re-exported from @compat/file:
-  readFile,
-  writeFile,
-  makeTempDir,
-  remove,
-} from './src/file.esm.js';
-```
-
----
-
-## Usage Examples
-
-### Asynchronous Operations
-
-```javascript
-import { symlink, readlink, lstat, writeTextFile, readTextFile } from '@extcompat/file';
-
-// 1. Create a target file
-await writeTextFile('target.txt', 'Hello Symlink!');
-
-// 2. Create a symbolic link
-await symlink('target.txt', 'symlink.txt');
-
-// 3. Inspect with lstat (does not follow symlink)
-const stats = await lstat('symlink.txt');
-console.log(stats.isSymbolicLink()); // true
-console.log(stats.isFile());         // false
-
-// 4. Read the target path
-const target = await readlink('symlink.txt');
-console.log(target); // "target.txt"
-
-// 5. Read file contents through the symlink
-const content = await readTextFile('symlink.txt');
-console.log(content); // "Hello Symlink!"
-```
-
-### Synchronous Operations
-
-```javascript
-import { symlinkSync, readlinkSync, lstatSync, writeTextFileSync, readTextFileSync } from '@extcompat/file';
-
-writeTextFileSync('data.json', '{"status":"ok"}');
-symlinkSync('data.json', 'data-link.json');
-
-const stats = lstatSync('data-link.json');
-if (stats.isSymbolicLink()) {
-  console.log('Symlink destination:', readlinkSync('data-link.json'));
-}
-```
-
----
-
-## API Reference
-
-### `symlink(target, path, typeOrOptions?)`
-- **`target`**: `string | URL` - Path or `file:` URL that the symlink will point to.
-- **`path`**: `string | URL` - Destination path or `file:` URL where the symlink will be created.
-- **`typeOrOptions`**: `string | { type?: 'file' | 'dir' | 'junction' }` - *(Optional)* Type hint (reserved for future Windows platform support).
-- **Returns**: `Promise<void>`
-
-### `symlinkSync(target, path, typeOrOptions?)`
-- Synchronous variant of `symlink`.
-- **Returns**: `void`
-
-### `readlink(path)`
-- **`path`**: `string | URL` - Path or `file:` URL to the symbolic link.
-- **Returns**: `Promise<string>` - Destination path pointed to by the symlink.
-
-### `readlinkSync(path)`
-- Synchronous variant of `readlink`.
-- **Returns**: `string`
-
-### `lstat(path)`
-- **`path`**: `string | URL` - Path or `file:` URL to inspect.
-- **Returns**: `Promise<StatsResult>` - Normalized file status object without following symlinks.
-
-### `lstatSync(path)`
-- Synchronous variant of `lstat`.
-- **Returns**: `StatsResult`
-
-### `StatsResult`
-Normalized object providing:
-- **Methods**:
-  - `isSymbolicLink()` / `isSymlink()`: `boolean`
-  - `isFile()`: `boolean`
-  - `isDirectory()`: `boolean`
-  - `isBlockDevice()`: `boolean`
-  - `isCharacterDevice()`: `boolean`
-  - `isFIFO()`: `boolean`
-  - `isSocket()`: `boolean`
-- **Properties**:
-  - `size`: `number`
-  - `mtime`: `Date | null`
-  - `atime`: `Date | null`
-  - `birthtime`: `Date | null`
-  - `ctime`: `Date | null`
-  - `mode`: `number | null`
-  - `uid`: `number | null`
-  - `gid`: `number | null`
-  - `dev`: `number | null`
-  - `ino`: `number | null`
-  - `nlink`: `number | null`
-  - `rdev`: `number | null`
-  - `blksize`: `number | null`
-  - `blocks`: `number | null`
+For full API specifications, type details, and examples, see [`docs/file.md`](docs/file.md).
 
 ---
 
 ## Testing
 
-Run the test suite across any of the supported JavaScript runtimes:
+Run the test suite across supported runtimes:
 
 ```bash
 # Deno
-deno test -A
+deno test -A test
 
 # Bun (via wicbun)
-wicbun --test --isolate test/symlink.test.js
+wicbun --test --isolate test
 
 # Node.js (via wicnode)
-wicnode --test test/symlink.test.js
+wicnode --test test
 ```
+
+---
+
+## License
+
+[MIT](LICENSE)
