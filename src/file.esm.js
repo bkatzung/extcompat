@@ -8,10 +8,10 @@
  * @module @extcompat/file
  */
 
-import { isBun, isDeno, isNode } from '@compat/runtime';
-import { fromFileUrl } from '@compat/file';
+import { isDeno } from '@compat/runtime';
+import { fromFileUrl } from '@tundralibs/compat/file';
 
-export * from '@compat/file';
+export * from '@tundralibs/compat/file';
 
 /**
  * Normalized file status object providing consistent cross-runtime metadata

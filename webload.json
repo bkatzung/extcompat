@@ -1,10 +1,11 @@
 {
 	"imports": {
 		"@std/assert": "https://esm.sh/jsr/@std/assert?target=node",
-		"@compat/cli": "https://esm.sh/jsr/@tundralibs/compat/cli?target=node",
-		"@compat/file": "https://esm.sh/jsr/@tundralibs/compat/file?target=node",
-		"@compat/runtime": "https://esm.sh/jsr/@tundralibs/compat/runtime?target=node",
-		"@compat/test": "https://esm.sh/jsr/@tundralibs/compat/test?target=node",
+		"@compat/cli": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/cli?target=node",
+		"@compat/file": "./src/file.esm.js",
+		"@tundralibs/compat/file": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/file?target=node",
+		"@compat/runtime": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/runtime?target=node",
+		"@compat/test": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/test?target=node",
 		"@parseargs": "https://esm.sh/@pkgjs/parseargs@0.11.0/node/parseargs.mjs"
 	},
 	"script-src": [

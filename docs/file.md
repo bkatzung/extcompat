@@ -42,7 +42,8 @@ flowchart TD
 ```json
 {
   "imports": {
-    "@extcompat/file": "https://cdn.jsdelivr.net/gh/bkatzung/extcompat@<semver>/src/file.esm.js"
+    "@compat/file": "https://cdn.jsdelivr.net/gh/bkatzung/extcompat@<semver>/src/file.esm.js",
+    "@tundralibs/compat/file": "https://esm.sh/jsr/@tundralibs/compat@<semver>/file"
   }
 }
 ```
