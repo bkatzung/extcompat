@@ -17,6 +17,15 @@ Extends [`@tundralibs/compat/file`](deno.json:5) with:
 
 For full API specifications, type details, and examples, see [`docs/file.md`](docs/file.md).
 
+### `@extcompat/subprocess` ([`src/subprocess.esm.js`](src/subprocess.esm.js:1))
+
+Provides cross-runtime subprocess spawning with standard Web Streams and Promise-based controls:
+- **Subprocess Spawning**: [`spawn`](src/subprocess.esm.js:429) across Deno, Node.js, and Bun.
+- **Unified Controller**: [`Subprocess`](src/subprocess.esm.js:139) with Web Streams (`stdin`, `stdout`, `stderr`), `status` promise, and cancellation via `signal` or [`kill()`](src/subprocess.esm.js:213).
+- **Buffered Output Helpers**: [`output()`](src/subprocess.esm.js:164) (binary), [`text()`](src/subprocess.esm.js:189) (string), and [`json()`](src/subprocess.esm.js:203) (JSON).
+
+For full API specifications, type details, and examples, see [`docs/subprocess.md`](docs/subprocess.md).
+
 ---
 
 ## Testing
