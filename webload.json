@@ -3,6 +3,7 @@
 		"@std/assert": "https://esm.sh/jsr/@std/assert?target=node",
 		"@compat/cli": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/cli?target=node",
 		"@compat/file": "./src/file.esm.js",
+		"@compat/sqlite": "./src/sqlite.esm.js",
 		"@compat/subprocess": "./src/subprocess.esm.js",
 		"@tundralibs/compat/file": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/file?target=node",
 		"@compat/runtime": "https://esm.sh/jsr/@tundralibs/compat@2.8.1/runtime?target=node",

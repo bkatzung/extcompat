@@ -162,7 +162,7 @@ export class Subprocess {
 	 * @param {Promise<{ success: boolean, code: number, signal: string | number | null }>} params.status
 	 * @param {object} params.raw - The underlying runtime child process.
 	 */
-	constructor({ pid, stdin, stdout, stderr, status, raw }) {
+	constructor ({ pid, stdin, stdout, stderr, status, raw }) {
 		this.pid = pid;
 		this.stdin = stdin;
 		this.stdout = stdout;
@@ -177,7 +177,7 @@ export class Subprocess {
 	 *
 	 * @returns {Promise<{ success: boolean, code: number, signal: string | number | null, stdout: Uint8Array, stderr: Uint8Array }>}
 	 */
-	async output() {
+	async output () {
 		if (!this.#stdoutCollected && this.stdout) {
 			this.#stdoutCollected = collectStream(this.stdout);
 		}
@@ -205,7 +205,7 @@ export class Subprocess {
 	 *
 	 * @returns {Promise<{ success: boolean, code: number, signal: string | number | null, stdout: string, stderr: string }>}
 	 */
-	async text() {
+	async text () {
 		const out = await this.output();
 		const decoder = new TextDecoder('utf-8');
 		return {
@@ -222,7 +222,7 @@ export class Subprocess {
 	 *
 	 * @returns {Promise<{ success: boolean, code: number, signal: string | number | null, stdout: any, stderr: string }>}
 	 */
-	async json() {
+	async json () {
 		const txt = await this.text();
 		return {
 			success: txt.success,
@@ -239,7 +239,7 @@ export class Subprocess {
 	 * @param {number | string} [signo='SIGTERM'] - Signal name or number.
 	 * @returns {boolean} True if the signal was sent.
 	 */
-	kill(signo = 'SIGTERM') {
+	kill (signo = 'SIGTERM') {
 		if (this.#raw && typeof this.#raw.kill === 'function') {
 			try {
 				const res = this.#raw.kill(signo);
@@ -254,7 +254,7 @@ export class Subprocess {
 	/**
 	 * Restores the subprocess to keep the event loop alive.
 	 */
-	ref() {
+	ref () {
 		if (this.#raw && typeof this.#raw.ref === 'function') {
 			this.#raw.ref();
 		}
@@ -263,7 +263,7 @@ export class Subprocess {
 	/**
 	 * Prevents the subprocess from keeping the event loop alive.
 	 */
-	unref() {
+	unref () {
 		if (this.#raw && typeof this.#raw.unref === 'function') {
 			this.#raw.unref();
 		}
@@ -274,7 +274,7 @@ export class Subprocess {
 	 *
 	 * @returns {Promise<void>}
 	 */
-	async [Symbol.asyncDispose]() {
+	async [Symbol.asyncDispose] () {
 		try {
 			this.kill('SIGTERM');
 		} catch (_) {

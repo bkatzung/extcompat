@@ -17,6 +17,15 @@ Extends [`@tundralibs/compat/file`](deno.json:5) with:
 
 For full API specifications, type details, and examples, see [`docs/file.md`](docs/file.md).
 
+### `@extcompat/sqlite` ([`src/sqlite.esm.js`](src/sqlite.esm.js:1))
+
+Provides cross-runtime SQLite database access across Bun, Deno, Node.js, and derivative runtimes:
+- **Connection Management**: [`openDatabase`](src/sqlite.esm.js:521) supporting in-memory (`:memory:`), file paths, and `file:` URLs.
+- **Unified Database Client**: [`Database`](src/sqlite.esm.js:132) with [`query`](src/sqlite.esm.js:163) (tuple arrays), [`queryObjects`](src/sqlite.esm.js:174) (objects), [`queryOne`](src/sqlite.esm.js:185), and [`run`](src/sqlite.esm.js:196).
+- **Prepared Statements & Transactions**: [`Statement`](src/sqlite.esm.js:67) compilation and [`transaction`](src/sqlite.esm.js:238) block helpers with automatic rollback.
+
+For full API specifications, type details, and examples, see [`docs/sqlite.md`](docs/sqlite.md).
+
 ### `@extcompat/subprocess` ([`src/subprocess.esm.js`](src/subprocess.esm.js:1))
 
 Provides cross-runtime subprocess spawning with standard Web Streams and Promise-based controls:
